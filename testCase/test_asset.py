@@ -76,6 +76,7 @@ class assetAddtests(unittest.TestCase):
 
 
     def test_asset_web(self):
+        """测试页面新增资产功能是否正常"""
         addAsset(self)
         assetnames = self.driver.find_elements_by_css_selector("#editable-sample>tbody>tr>a")
         for assetname in assetnames:
@@ -114,6 +115,7 @@ class downTemplate(unittest.TestCase):
         cls.driver.close()
 
     def test_downTemplate(self):
+        """测试下载模板功能是否正常"""
         self.driver.find_element_by_xpath("//div[@class='widget-body']/div[1]/button[6]").click()
         downpath = "C:\\Users\\xqq\Downloads"
         lists = os.listdir(downpath)
@@ -135,6 +137,7 @@ class assetImport(unittest.TestCase):
         cls.driver.close()
 
     def test_asset_import(self):
+        """ 测试资产导入功能是否正常"""
         self.driver.find_element_by_xpath("//div[@class='widget-body']/div[1]/button[4]").click()
         filepath = "C:\\Users\\xqq\Downloads\资产模板.xlsx"
         self.driver.find_element_by_css_selector("input#dataFile.file").send_keys(filepath)
@@ -164,6 +167,7 @@ class assetEdit(unittest.TestCase):
         cls.driver.close()
 
     def test_asset_Edit(self):
+        """测试资产页面编辑功能是否正常"""
         checkboxs = self.driver.find_elements_by_xpath("//input[@class='checkboxes']")
         if len(checkboxs) > 1:
             parents = self.driver.find_elements_by_xpath("//table[@id='editable-sample']/tbody/tr")
