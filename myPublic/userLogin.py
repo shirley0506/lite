@@ -4,6 +4,7 @@ def Login(driver, url):
     driver.get(url)
     driver.find_element_by_id("userId").send_keys("root")
     driver.find_element_by_id("password").send_keys("root")
+    driver.find_element_by_id("verifyCode").send_keys("1234")
     driver.find_element_by_class_name("icon-arrow-right").click()
     sleep(2)
     alert_login = driver.switch_to.alert

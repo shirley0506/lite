@@ -9,29 +9,37 @@ import HTMLTestRunner
 
 def ifexistAsset(self):
     # 通过定位父元素，操作子元素，操作兄弟元素
+    # 定位到一组元素，非标题栏
     parents = self.driver.find_elements_by_xpath("//table[@id='editable-sample']/tbody/tr")
+
     for parent in parents:
-        sons = parent.find_elements_by_xpath("./td[2]")
+        # `.`代表当前节点，`..`代表父节点
+        sons = parent.find_elements_by_xpath("./td[2]/a")  # 串联查找 定位到一组资产名称的元素
         for son in sons:
-            if 'test_selenium' in son.text:
-                son.find_element_by_xpath("../td[1]/input[@name='checkAssets']").click()
-                sleep(2)
-                self.driver.find_element_by_xpath("//div[@class='widget-body']/div[1]/button[2]").click()
-                sleep(2)
-                self.driver.switch_to.alert.accept()
-                sleep(2)
-                try:
-                    self.driver.switch_to.alert.accept()
-                except UnexpectedAlertPresentException as e:
-                    self.driver.switch_to.alert.dismiss()
+            if 'test_selenium' in son.text:  # 判断test_selenium在不在数组中
+                el = son
+                break  # 拿到删除的资产，退出整个循环
+
+    el.find_element_by_xpath("../../td[1]/input[@name='checkAssets']").click()  # 返回到复选框，并选中
+    sleep(2)
+    self.driver.find_element_by_xpath("//div[@class='span12']/div[1]/div[2]/button[2]").click()
+    sleep(2)
+    self.driver.switch_to.alert.accept()
+    sleep(2)
+    try:
+        self.driver.switch_to.alert.accept()
+    except UnexpectedAlertPresentException as e:
+        self.driver.switch_to.alert.dismiss()
     sleep(2)
 
 
 def addAsset(self):
     # 获取新增按钮属性
-    self.driver.find_element_by_xpath("//div[@class='widget-body']/div[1]/button[1]").click()
+    # self.driver.find_element_by_xpath("//div[@class='widget-body']/div[1]/button[1]").click() //NGLogSight版已不适用
+    self.driver.find_element_by_xpath("//div[@class='span12']/div[1]/div[2]/button[1]").click()
     sleep(2)
-    title = self.driver.find_element_by_xpath("//table[@id='editable-sample']/thead/tr/th").text
+    # title = self.driver.find_element_by_xpath("//table[@id='editable-sample']/thead/tr/th").text
+    title = self.driver.find_element_by_xpath("//*[@id='editable-sample']/thead/tr/th").text
     try:
         assert title == '资产信息新增'
         print('成功进入资产新增页面')
@@ -41,21 +49,29 @@ def addAsset(self):
     self.driver.find_element_by_id("assetsInfo.assetsName").send_keys('test_selenium')
     self.driver.find_element_by_id("assetsInfo.assetsIp").send_keys('1.1.1.1')
     self.driver.find_element_by_id("assetsInfo.dataSrc").send_keys('test_selenium')
-    radios = self.driver.find_elements_by_name("assetsInfo.useFlumeAgent")
-    for radio in radios:
-        if radio.get_attribute("value") == '01':
-            radio.click()
-    self.driver.find_element_by_id("assetsInfo.assetsKey").send_keys("test_selenium")
     js = "window.scrollTo(10000,10000);"
     self.driver.execute_script(js)
-    self.driver.find_element_by_xpath("//div[@class='btn-group']/button[1]").click()
+    # 单选框 是否使用flume
+    radios = self.driver.find_elements_by_name("assetsInfo.useFlumeAgent")
+    for radio in radios:
+        # print(radio.get_attribute("value"))
+
+        if radio.get_attribute("value") == '01':
+            radio.click()
+            break
+
+    self.driver.find_element_by_id("assetsInfo.assetsKey").send_keys("test_selenium")
+    # js = "window.scrollTo(10000,10000);"
+    # self.driver.execute_script(js)
+    # self.driver.find_element_by_xpath("//div[@class='btn-group']/button[1]").click()
+
+    self.driver.find_element_by_xpath("//*[@id='editable-sample']/tbody/tr[10]/td/div/button[1]").click()
     sleep(2)
     self.driver.switch_to.alert.accept()
 
 
 # @unittest.skip("直接跳过测试")
 class assetAddtests(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         cls.driver = webdriver.Chrome()
@@ -65,15 +81,14 @@ class assetAddtests(unittest.TestCase):
         menu.assetMenu(cls.driver)
         sleep(2)
 
-    @classmethod
-    def tearDownClass(cls):
-        cls.driver.quit()
+    # @classmethod
+    # def tearDownClass(cls):
+    #     cls.driver.quit()
 
     def setUp(self):
         checkboxs = self.driver.find_elements_by_xpath("//input[@class='checkboxes']")
         if len(checkboxs) > 1:
             ifexistAsset(self)
-
 
     def test_asset_web(self):
         """测试页面新增资产功能是否正常"""
@@ -82,7 +97,9 @@ class assetAddtests(unittest.TestCase):
         for assetname in assetnames:
             self.assertIn('test_selenium', assetname.text)
             break
-    '''       
+        ifexistAsset(self)
+
+    '''     
     def test_asset_web_assetname_AA(self):
         self.driver.find_element_by_xpath("//div[@class='widget-body']/div[1]/button[1]").click()
         sleep(2)
@@ -97,9 +114,10 @@ class assetAddtests(unittest.TestCase):
         js = "window.scrollTo(10000,10000);"
         self.driver.execute_script(js)
         self.driver.find_element_by_xpath("//div[@class='btn-group']/button[1]").click()
-     '''
+    '''
 
-# @unittest.skip("直接跳过测试")
+
+@unittest.skip("直接跳过测试")
 class downTemplate(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -114,6 +132,7 @@ class downTemplate(unittest.TestCase):
     def tearDownClass(cls):
         cls.driver.close()
 
+
     def test_downTemplate(self):
         """测试下载模板功能是否正常"""
         self.driver.find_element_by_xpath("//div[@class='widget-body']/div[1]/button[6]").click()
@@ -121,7 +140,8 @@ class downTemplate(unittest.TestCase):
         lists = os.listdir(downpath)
         self.assertIn('资产模板.xlsx', lists)
 
-# @unittest.skip("直接跳过测试")
+
+@unittest.skip("直接跳过测试")
 class assetImport(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -151,8 +171,9 @@ class assetImport(unittest.TestCase):
         except UnexpectedAlertPresentException as e:
             self.driver.switch_to.alert.dismiss()
 
-class assetEdit(unittest.TestCase):
 
+@unittest.skip("直接跳过测试")
+class assetEdit(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.driver = webdriver.Chrome()
@@ -176,8 +197,7 @@ class assetEdit(unittest.TestCase):
                 for son in sons:
                     if 'test_selenium' in son.text:
                         son.click()
-                        # break
-                        # break
+
 
         sleep(2)
         self.driver.find_element_by_id("assetsInfo.assetsName").send_keys('_edit')
@@ -187,7 +207,6 @@ class assetEdit(unittest.TestCase):
         sleep(2)
         self.driver.switch_to.alert.accept()
 
-
         assetnames = self.driver.find_elements_by_css_selector("#editable-sample>tbody>tr>a")
         for assetname in assetnames:
             self.assertIn('edit', assetname.text)
@@ -195,7 +214,8 @@ class assetEdit(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    # unittest.main()
+    unittest.main()
+    '''
     now_time = time.strftime("%Y-%m-%d %H_%M_%S")
     fp = open('../report/' + now_time + '.html', 'wb')
     testunit = unittest.TestSuite()
@@ -209,4 +229,4 @@ if __name__ == '__main__':
     )
     runner.run(testunit)
     fp.close()
-
+    '''
